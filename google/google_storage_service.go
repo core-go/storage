@@ -1,22 +1,21 @@
 package storage
 
 import (
-	"context"
-	"path"
-
 	"cloud.google.com/go/storage"
-	. "github.com/common-go/storage"
+	"context"
+	st "github.com/core-go/storage"
+	"path"
 )
 
 const storageUrl = "https://storage.googleapis.com"
 
 type GoogleStorageService struct {
 	Client *storage.Client
-	Config Config
+	Config st.Config
 	Bucket *storage.BucketHandle
 }
 
-func NewGoogleStorageServiceWithCredentialsFile(ctx context.Context, credentialsFile string, config Config) (*GoogleStorageService, error) {
+func NewGoogleStorageServiceWithCredentialsFile(ctx context.Context, credentialsFile string, config st.Config) (*GoogleStorageService, error) {
 	client, err := NewClient(ctx, credentialsFile)
 	if err != nil {
 		return nil, err
@@ -25,13 +24,13 @@ func NewGoogleStorageServiceWithCredentialsFile(ctx context.Context, credentials
 	return gs, nil
 }
 
-func NewGoogleStorageService(client *storage.Client, config Config) *GoogleStorageService {
+func NewGoogleStorageService(client *storage.Client, config st.Config) *GoogleStorageService {
 	return &GoogleStorageService{client,
 		config,
 		client.Bucket(config.BucketName)}
 }
 
-func (s GoogleStorageService) Upload(ctx context.Context, file File) (*StorageResult, error) {
+func (s GoogleStorageService) Upload(ctx context.Context, file st.File) (*st.StorageResult, error) {
 	dir := file.Name
 	if len(s.Config.SubDirectory) > 0 {
 		dir = path.Join(s.Config.SubDirectory, file.Name)
@@ -69,7 +68,7 @@ func (s GoogleStorageService) Upload(ctx context.Context, file File) (*StorageRe
 	if err != nil {
 		return nil, err
 	}
-	return &StorageResult{Status: int64(n), Name: file.Name, MediaLink: attrs.MediaLink, Link: getLinkPublic(s.Config.BucketName, dir)}, nil
+	return &st.StorageResult{Status: int64(n), Name: file.Name, MediaLink: attrs.MediaLink, Link: getLinkPublic(s.Config.BucketName, dir)}, nil
 }
 
 func getLinkPublic(bucketName string, remoteFile string) string {
