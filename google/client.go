@@ -13,7 +13,6 @@ func NewClientWithCredentialsFile(ctx context.Context, credentialsFile string) (
 	}
 	return client, nil
 }
-
 func NewClient(ctx context.Context, credentials []byte) (*storage.Client, error) {
 	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(credentials))
 	if err != nil {
@@ -22,7 +21,7 @@ func NewClient(ctx context.Context, credentials []byte) (*storage.Client, error)
 	return client, nil
 }
 func NewClientWithOptions(ctx context.Context, opt...option.ClientOption) (*storage.Client, error) {
-	client, err := storage.NewClient(ctx, opt...) //"resource/key.json"
+	client, err := storage.NewClient(ctx, opt...)
 	if err != nil {
 		return nil, err
 	}
