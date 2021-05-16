@@ -14,9 +14,16 @@ type GoogleStorageService struct {
 	Config st.Config
 	Bucket *storage.BucketHandle
 }
-
-func NewGoogleStorageServiceWithCredentialsFile(ctx context.Context, credentialsFile string, config st.Config) (*GoogleStorageService, error) {
-	client, err := NewClient(ctx, credentialsFile)
+func NewGoogleStorageServiceWithCredentials(ctx context.Context, config st.Config, credentials []byte) (*GoogleStorageService, error) {
+	client, err := NewClient(ctx, credentials)
+	if err != nil {
+		return nil, err
+	}
+	gs := NewGoogleStorageService(client, config)
+	return gs, nil
+}
+func NewGoogleStorageServiceWithCredentialsFile(ctx context.Context, config st.Config, credentialsFile string) (*GoogleStorageService, error) {
+	client, err := NewClientWithCredentialsFile(ctx, credentialsFile)
 	if err != nil {
 		return nil, err
 	}
