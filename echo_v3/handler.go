@@ -74,7 +74,7 @@ func (s FileHandler) UploadFile() echo.HandlerFunc {
 		bytes := bufferFile.Bytes()
 		contentTye := handler.Header.Get(contentTypeHeader)
 		if len(contentTye) == 0 {
-			contentTye = filepath.Ext(handler.Filename)
+			contentTye = getExt(handler.Filename)
 		}
 		rs, err2 := s.Service.Upload(r.Context(), s.Directory, handler.Filename, bytes, contentTye)
 		if err2 != nil {
@@ -89,4 +89,12 @@ func log(logError func(context.Context, string), r *http.Request, err string) {
 	if logError != nil {
 		logError(r.Context(), err)
 	}
+}
+func getExt(file string) string {
+	ext := filepath.Ext(file)
+	if strings.HasPrefix(ext, ":") {
+		ext = ext[1:]
+		return ext
+	}
+	return ext
 }
