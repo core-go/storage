@@ -45,35 +45,35 @@ func NewS3Service(session *session.Session, config storage.Config) *S3Service {
 	return service
 }
 
-func (s S3Service) Upload(ctx context.Context, objectFile storage.File) (*storage.StorageResult, error) {
-	dir := objectFile.Name
-	if len(s.Config.SubDirectory) > 0 {
-		dir = path.Join(s.Config.SubDirectory, objectFile.Name)
+func (s S3Service) Upload(ctx context.Context, directory string, filename string, data []byte, contentType string) (string, error) {
+	dir := filename
+	if len(directory) > 0 {
+		dir = path.Join(directory, filename)
 	}
 	uploader := s3manager.NewUploader(s.session)
 	i := &s3manager.UploadInput{
-		Bucket: aws.String(s.Config.BucketName),
+		Bucket: aws.String(s.Config.Bucket),
 		Key:    aws.String(dir),
-		Body:   bytes.NewReader(objectFile.Bytes),
+		Body:   bytes.NewReader(data),
 	}
-	if s.Config.AllUsersAreReader != nil && *s.Config.AllUsersAreReader {
+	if s.Config.Public != nil && *s.Config.Public == true {
 		i.ACL = aws.String("public-read")
-	} else if s.Config.AllAuthenticatedUsersReader != nil && *s.Config.AllAuthenticatedUsersReader {
+	} else if s.Config.Private == nil || *s.Config.Private == false {
 		i.ACL = aws.String("authenticated-read")
 	}
 	up, err := uploader.Upload(i)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &storage.StorageResult{Status: 1, Name: objectFile.Name, MediaLink: up.Location, Link: up.Location}, nil
+	return up.Location, nil
 }
 
-func (s S3Service) Delete(ctx context.Context, fileName string) (bool, error) {
+func (s S3Service) Delete(ctx context.Context, directory string, fileName string) (bool, error) {
 	dir := fileName
-	if len(s.Config.SubDirectory) > 0 {
-		dir = path.Join(s.Config.SubDirectory, fileName)
+	if len(directory) > 0 {
+		dir = path.Join(directory, fileName)
 	}
-	out, err := s3.New(s.session).DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{Bucket: &s.Config.BucketName, Key: &dir})
+	out, err := s3.New(s.session).DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{Bucket: &s.Config.Bucket, Key: &dir})
 	if err != nil {
 		return false, err
 	}

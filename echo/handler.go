@@ -7,23 +7,25 @@ import (
 	"github.com/labstack/echo/v4"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
 const contentTypeHeader = "Content-Type"
 
 type FileHandler struct {
-	Service st.StorageService
-	KeyFile string
-	Error   func(context.Context, string)
+	Service   st.StorageService
+	Directory string
+	KeyFile   string
+	Error     func(context.Context, string)
 }
 
-func NewFileHandler(service st.StorageService, keyFile string, options...func(context.Context, string)) *FileHandler {
+func NewFileHandler(service st.StorageService, directory string, keyFile string, options ...func(context.Context, string)) *FileHandler {
 	var logError func(context.Context, string)
 	if len(options) > 0 && options[0] != nil {
 		logError = options[0]
 	}
-	return &FileHandler{Service: service, KeyFile: keyFile, Error: logError}
+	return &FileHandler{Service: service, Directory: directory, KeyFile: keyFile, Error: logError}
 }
 
 func (s FileHandler) DeleteFile() echo.HandlerFunc {
@@ -35,7 +37,7 @@ func (s FileHandler) DeleteFile() echo.HandlerFunc {
 			return ctx.String(http.StatusBadRequest, "require id")
 		}
 		filename = r.RequestURI[i+1:]
-		rs, err := s.Service.Delete(r.Context(), filename)
+		rs, err := s.Service.Delete(r.Context(), s.Directory, filename)
 		if err != nil {
 			log(s.Error, r, err.Error())
 			return ctx.String(http.StatusInternalServerError, "Internal Server Error")
@@ -68,9 +70,13 @@ func (s FileHandler) UploadFile() echo.HandlerFunc {
 			return ctx.String(http.StatusInternalServerError, "Internal Server Error")
 		}
 		defer file.Close()
-		content := st.File{Name: handler.Filename, ContentType: handler.Header.Get(contentTypeHeader), Bytes: bufferFile.Bytes()}
 
-		rs, err2 := s.Service.Upload(r.Context(), content)
+		bytes := bufferFile.Bytes()
+		contentTye := handler.Header.Get(contentTypeHeader)
+		if len(contentTye) == 0 {
+			contentTye = filepath.Ext(handler.Filename)
+		}
+		rs, err2 := s.Service.Upload(r.Context(), s.Directory, handler.Filename, bytes, contentTye)
 		if err2 != nil {
 			s.Error(r.Context(), err2.Error())
 			return ctx.String(http.StatusInternalServerError, "Internal Server Error")

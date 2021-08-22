@@ -6,23 +6,25 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
 const contentTypeHeader = "Content-Type"
 
 type FileHandler struct {
-	Service StorageService
-	KeyFile string
-	Error   func(context.Context, string)
+	Service   StorageService
+	Directory string
+	KeyFile   string
+	Error     func(context.Context, string)
 }
 
-func NewFileHandler(service StorageService, keyFile string, options...func(context.Context, string)) *FileHandler {
+func NewFileHandler(service StorageService, directory string, keyFile string, options ...func(context.Context, string)) *FileHandler {
 	var logError func(context.Context, string)
 	if len(options) > 0 && options[0] != nil {
 		logError = options[0]
 	}
-	return &FileHandler{Service: service, KeyFile: keyFile, Error: logError}
+	return &FileHandler{Service: service, Directory: directory, KeyFile: keyFile, Error: logError}
 }
 
 func (s FileHandler) DeleteFile(w http.ResponseWriter, r *http.Request) {
@@ -33,13 +35,13 @@ func (s FileHandler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	filename = r.RequestURI[i+1:]
-	rs, err := s.Service.Delete(r.Context(), filename)
+	rs, err := s.Service.Delete(r.Context(), s.Directory, filename)
 	if err != nil {
 		log(s.Error, r, err.Error())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	respond(w, r, http.StatusOK, rs)
+	respond(w, http.StatusOK, rs)
 }
 
 func (s FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -66,18 +68,21 @@ func (s FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	content := File{Name: handler.Filename, ContentType: handler.Header.Get(contentTypeHeader), Bytes: bufferFile.Bytes()}
-
-	rs, err2 := s.Service.Upload(r.Context(), content)
+	bytes := bufferFile.Bytes()
+	contentTye := handler.Header.Get(contentTypeHeader)
+	if len(contentTye) == 0 {
+		contentTye = filepath.Ext(handler.Filename)
+	}
+	rs, err2 := s.Service.Upload(r.Context(), s.Directory, handler.Filename, bytes, contentTye)
 	if err2 != nil {
 		s.Error(r.Context(), err2.Error())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	respond(w, r, http.StatusOK, rs)
+	respond(w, http.StatusOK, rs)
 }
 
-func respond(w http.ResponseWriter, r *http.Request, code int, result interface{}) {
+func respond(w http.ResponseWriter, code int, result interface{}) {
 	response, _ := json.Marshal(result)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
