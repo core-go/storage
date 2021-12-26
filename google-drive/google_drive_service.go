@@ -1,4 +1,4 @@
-package service
+package google_drive
 
 import (
 	"bytes"
@@ -64,8 +64,7 @@ func (s GoogleDriveService) Upload(ctx context.Context, directory string, filena
 
 	return msg, nil
 }
-
-func (s GoogleDriveService)  Delete(ctx context.Context, directory string, fileName string) (bool, error) {
+func (s GoogleDriveService) Delete(ctx context.Context, directory string, fileName string) (bool, error) {
 	return false, nil
 }
 
@@ -84,7 +83,6 @@ func getClient(config *oauth2.Config) *http.Client {
 	}
 	return config.Client(context.Background(), tok)
 }
-
 // getTokenFromWeb Request a token from the web, then returns the retrieved token.
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
@@ -102,7 +100,6 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	}
 	return tok
 }
-
 // tokenFromFile get token from a local file.
 func tokenFromFile(file string) (*oauth2.Token, error) {
 	f, err := os.Open(file)
@@ -114,7 +111,6 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 	err = json.NewDecoder(f).Decode(tok)
 	return tok, err
 }
-
 // saveToken Saves a token to a new created file
 func saveToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
@@ -125,7 +121,6 @@ func saveToken(path string, token *oauth2.Token) {
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
 }
-
 func createDirectory(service *drive.Service, name string, parentId string) (*drive.File, error) {
 	d := &drive.File{
 		Name:     name,
@@ -142,7 +137,6 @@ func createDirectory(service *drive.Service, name string, parentId string) (*dri
 
 	return file, nil
 }
-
 func createFile(service *drive.Service, name string, mimeType string, content io.Reader, parentId string) (*drive.File, error) {
 	f := &drive.File{
 		MimeType: mimeType,
@@ -158,4 +152,3 @@ func createFile(service *drive.Service, name string, mimeType string, content io
 
 	return file, nil
 }
-
