@@ -85,7 +85,7 @@ func (o OneDriveService) Delete(ctx context.Context, directory string, fileName 
 	}
 
 	if o.Id {
-		err := client.DriveItems.Delete(ctx, "", directory)
+		err := client.DriveItems.Delete(ctx, "", fileName)
 		if err != nil {
 			return false, err
 		}

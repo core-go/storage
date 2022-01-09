@@ -88,7 +88,7 @@ func (s GoogleDriveService) Upload(ctx context.Context, directory string, filena
 func (s GoogleDriveService) Delete(ctx context.Context, directory string, fileName string) (bool, error) {
 	// get the fileId of the file that need to be deleted
 	if s.Type == "Id" {
-		err := s.Service.Files.Delete(directory).Do()
+		err := s.Service.Files.Delete(fileName).Do()
 		if err != nil {
 			return false, err
 		} else {

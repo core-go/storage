@@ -27,7 +27,7 @@ func NewFileHandler(service StorageService, directory string, keyFile string, op
 	return &FileHandler{Service: service, Directory: directory, KeyFile: keyFile, Error: logError}
 }
 
-func (s FileHandler) DeleteFile(w http.ResponseWriter, r *http.Request) {
+func (s FileHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	i := strings.LastIndex(r.RequestURI, "/")
 	filename := ""
 	if i <= 0 {
@@ -44,7 +44,7 @@ func (s FileHandler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	respond(w, http.StatusOK, rs)
 }
 
-func (s FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
+func (s FileHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	// 32 << 20 is the maxMemory param for ParseMultipartForm, equals to 32MB (1MB = 1024 * 1024 bytes = 2^20 bytes)
 	// After you call ParseMultipartForm, the file will be saved in the server memory with maxMemory size.
 	// If the file size is larger than maxMemory, the rest of the data will be saved in a system temporary file.

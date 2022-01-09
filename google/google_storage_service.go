@@ -3,6 +3,7 @@ package google
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"errors"
 	st "github.com/core-go/storage"
 	"path"
 )
@@ -88,8 +89,13 @@ func (s GoogleStorageService) Delete(ctx context.Context, directory string, file
 	if len(directory) > 0 {
 		dir = path.Join(directory, fileName)
 	}
-	if err := s.Bucket.Object(dir).Delete(ctx); err != nil {
-		return false, err
+	obj := s.Bucket.Object(dir)
+	if obj == nil {
+		return false, errors.New("Object is nil: " + dir)
+	} else {
+		if err := obj.Delete(ctx); err != nil {
+			return false, err
+		}
+		return true, nil
 	}
-	return true, nil
 }

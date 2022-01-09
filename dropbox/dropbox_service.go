@@ -38,7 +38,13 @@ func (d DropboxService) Upload(ctx context.Context, directory string, filename s
 	}
 
 	// create new upload info
-	filepath := fmt.Sprintf("/%s/%s", directory, filename)
+	var filepath string
+	if len(directory) > 0 {
+		filepath = fmt.Sprintf("/%s/%s", directory, filename)
+	} else {
+		filepath = "/" + filename
+	}
+
 	arg := files.NewCommitInfo(filepath)
 
 	// upload file
@@ -54,19 +60,22 @@ func (d DropboxService) Upload(ctx context.Context, directory string, filename s
 	}
 }
 
-func (d DropboxService) Delete(ctx context.Context, directory string, fileName string) (bool, error) {
+func (d DropboxService) Delete(ctx context.Context, directory string, filename string) (bool, error) {
 	client := d.Client
 	if client == nil {
 		config := dropbox.Config{Token: d.Token}
 		client = files.New(config)
 	}
-
-	filepath := fmt.Sprintf("/%s/%s", directory, fileName)
+	var filepath string
+	if len(directory) > 0 {
+		filepath = fmt.Sprintf("/%s/%s", directory, filename)
+	} else {
+		filepath = "/" + filename
+	}
 	arg := files.NewDeleteArg(filepath)
 	_, err := client.DeleteV2(arg)
 	if err != nil {
 		return false, err
 	}
-
 	return true, nil
 }
