@@ -89,6 +89,7 @@ func (o OneDriveService) Delete(ctx context.Context, directory string, fileName 
 		if err != nil {
 			return false, err
 		}
+		return true, nil
 	} else {
 		list, _ := client.DriveItems.List(ctx, "root")
 		fileId := ""
