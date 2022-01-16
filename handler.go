@@ -35,7 +35,7 @@ func (s FileHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	filename = r.RequestURI[i+1:]
-	rs, err := s.Service.Delete(r.Context(), s.Directory, filename)
+	rs, err := s.Service.Delete(r.Context(), filename)
 	if err != nil {
 		log(s.Error, r, err.Error())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

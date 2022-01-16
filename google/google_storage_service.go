@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-const storageUrl = "https://storage.googleapis.com"
+const StorageUrl = "https://storage.googleapis.com"
 
 type GoogleStorageService struct {
 	Client *storage.Client
@@ -76,22 +76,18 @@ func (s GoogleStorageService) Upload(ctx context.Context, directory string, file
 	if err != nil {
 		return "", err
 	}
-	link :=  getLinkPublic(s.Config.Bucket, dir)
+	link := GetPublicLink(s.Config.Bucket, dir)
 	return link, nil
 }
 
-func getLinkPublic(bucketName string, remoteFile string) string {
-	return path.Join(storageUrl, bucketName, remoteFile)
+func GetPublicLink(bucketName string, remoteFile string) string {
+	return path.Join(StorageUrl, bucketName, remoteFile)
 }
 
-func (s GoogleStorageService) Delete(ctx context.Context, directory string, fileName string) (bool, error) {
-	dir := fileName
-	if len(directory) > 0 {
-		dir = path.Join(directory, fileName)
-	}
-	obj := s.Bucket.Object(dir)
+func (s GoogleStorageService) Delete(ctx context.Context, id string) (bool, error) {
+	obj := s.Bucket.Object(id)
 	if obj == nil {
-		return false, errors.New("Object is nil: " + dir)
+		return false, errors.New("Object is nil: " + id)
 	} else {
 		if err := obj.Delete(ctx); err != nil {
 			return false, err

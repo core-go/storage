@@ -68,12 +68,8 @@ func (s S3Service) Upload(ctx context.Context, directory string, filename string
 	return up.Location, nil
 }
 
-func (s S3Service) Delete(ctx context.Context, directory string, fileName string) (bool, error) {
-	dir := fileName
-	if len(directory) > 0 {
-		dir = path.Join(directory, fileName)
-	}
-	out, err := s3.New(s.session).DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{Bucket: &s.Config.Bucket, Key: &dir})
+func (s S3Service) Delete(ctx context.Context, id string) (bool, error) {
+	out, err := s3.New(s.session).DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{Bucket: &s.Config.Bucket, Key: &id})
 	if err != nil {
 		return false, err
 	}

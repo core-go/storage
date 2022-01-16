@@ -31,13 +31,11 @@ func NewFileHandler(service st.StorageService, directory string, keyFile string,
 func (s FileHandler) DeleteFile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		r := ctx.Request()
-		i := strings.LastIndex(r.RequestURI, "/")
-		filename := ""
-		if i <= 0 {
+		id := ctx.Param("id")
+		if len(id) == 0 {
 			return ctx.String(http.StatusBadRequest, "require id")
 		}
-		filename = r.RequestURI[i+1:]
-		rs, err := s.Service.Delete(r.Context(), s.Directory, filename)
+		rs, err := s.Service.Delete(r.Context(), id)
 		if err != nil {
 			log(s.Error, r, err.Error())
 			return ctx.String(http.StatusInternalServerError, "Internal Server Error")
