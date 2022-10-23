@@ -12,6 +12,14 @@ import (
 
 const contentTypeHeader = "Content-Type"
 
+type UploadHandler interface {
+	UploadImage(w http.ResponseWriter, r *http.Request)
+	UploadGallery(w http.ResponseWriter, r *http.Request)
+	UploadCover(w http.ResponseWriter, r *http.Request)
+	DeleteGalleryFile(w http.ResponseWriter, r *http.Request)
+	UpdateGallery(w http.ResponseWriter, r *http.Request)
+	GetGallery(w http.ResponseWriter, r *http.Request)
+}
 type FileHandler struct {
 	Service   StorageService
 	Directory string
