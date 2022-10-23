@@ -12,7 +12,7 @@ import (
 const contentTypeHeader = "Content-Type"
 
 func NewHandler(service UploadManager, logError func(context.Context, string, ...map[string]interface{}),
-	keyFile string, generate func(ctx context.Context) (string, error), opts...int,
+	keyFile string, generate func(ctx context.Context) (string, error), opts ...int,
 ) *Handler {
 	idIndex := 1
 	if len(opts) > 0 && opts[0] >= 0 {
@@ -249,7 +249,7 @@ func (u *Handler) UpdateGallery(w http.ResponseWriter, r *http.Request) {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
 		s := buf.String()
-		body := make(map[string][]UploadInfo)
+		var body []UploadInfo
 		json.NewDecoder(strings.NewReader(s)).Decode(&body)
 
 		result, err4 := u.Service.UpdateGallery(body, id, r)
@@ -272,7 +272,7 @@ func respond(w http.ResponseWriter, code int, result interface{}) {
 	w.WriteHeader(code)
 	w.Write(res)
 }
-func GetRequiredParam(w http.ResponseWriter,r *http.Request, options ...int) string {
+func GetRequiredParam(w http.ResponseWriter, r *http.Request, options ...int) string {
 	p := GetParam(r, options...)
 	if len(p) == 0 {
 		http.Error(w, "parameter is required", http.StatusBadRequest)

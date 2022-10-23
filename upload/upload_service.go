@@ -15,7 +15,7 @@ type UploadManager interface {
 	DeleteGalleryFile(id string, url string, r *http.Request) (int64, error)
 	UploadCover(id string, data []UploadData, contentType string, r *http.Request) (string, error)
 	UploadImage(id string, data []UploadData, contentType string, r *http.Request) (string, error)
-	UpdateGallery(data map[string][]UploadInfo, id string, r *http.Request) (int64, error)
+	UpdateGallery(data []UploadInfo, id string, r *http.Request) (int64, error)
 	GetGallery(id string, r *http.Request) ([]UploadInfo, error)
 }
 
@@ -212,8 +212,8 @@ func (u *UploadService) GetGallery(id string, r *http.Request) ([]UploadInfo, er
 	return rs.Gallery, err
 }
 
-func (u *UploadService) UpdateGallery(data map[string][]UploadInfo, id string, r *http.Request) (int64, error) {
-	user := UploadModel{Id: id, Gallery: data["data"]}
+func (u *UploadService) UpdateGallery(data []UploadInfo, id string, r *http.Request) (int64, error) {
+	user := UploadModel{Id: id, Gallery: data}
 	_, err2 := u.Update(r.Context(), user)
 	if err2 != nil {
 		return 0, err2
