@@ -34,7 +34,7 @@ func (u *Upload) Scan(value interface{}) error {
 }
 
 type FileConfig struct {
-	MaxSize           int64  `json:"maxSize,omitempty" mapstructure:"max_size"`
-	MaxSizeMemory     int64  `json:"maxSizeMemory,omitempty" mapstructure:"max_size_memory"`
-	AllowedExtensions string `json:"allowedExtensions,omitempty" mapstructure:"allowed_extensions"`
+	MaxSize           int64  `yaml:"max_size" mapstructure:"max_size" json:"maxSize,omitempty"`
+	MaxSizeMemory     int64  `yaml:"max_size_memory" mapstructure:"max_size_memory" json:"maxSizeMemory,omitempty"`
+	AllowedExtensions string `yaml:"allowed_extensions" mapstructure:"allowed_extensions" json:"allowedExtensions,omitempty"`
 }

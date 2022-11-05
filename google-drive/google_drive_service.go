@@ -18,8 +18,10 @@ type GoogleDriveService struct {
 	Service *drive.Service
 	Id      bool
 }
-
 func NewGoogleDriveService(credentials []byte, options ...bool) (*GoogleDriveService, error) {
+	return NewGoogleDriveAdapter(credentials, options...)
+}
+func NewGoogleDriveAdapter(credentials []byte, options ...bool) (*GoogleDriveService, error) {
 	// create a config struct based on Google Drive credentials string in config
 	config, err := google.ConfigFromJSON(credentials, drive.DriveFileScope)
 	if err != nil {

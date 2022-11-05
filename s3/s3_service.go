@@ -19,7 +19,7 @@ type Config struct {
 	Token           string `mapstructure:"token" json:"token,omitempty" gorm:"column:token" bson:"token,omitempty" dynamodbav:"token,omitempty" firestore:"token,omitempty"`
 }
 
-type S3Service struct {
+type S3Adapter struct {
 	session *session.Session
 	Config  storage.Config
 }
@@ -31,21 +31,26 @@ func NewSession(config Config) (*session.Session, error) {
 	}
 	return session.NewSession(c)
 }
-func NewS3ServiceWithConfig(c Config, config storage.Config) (*S3Service, error) {
+func NewS3ServiceWithConfig(c Config, config storage.Config) (*S3Adapter, error) {
+	return NewS3AdapterWithConfig(c, config)
+}
+func NewS3AdapterWithConfig(c Config, config storage.Config) (*S3Adapter, error) {
 	session, err := NewSession(c)
 	if err != nil {
 		return nil, err
 	}
-	service := &S3Service{session: session, Config: config}
+	service := &S3Adapter{session: session, Config: config}
 	return service, nil
 }
-
-func NewS3Service(session *session.Session, config storage.Config) *S3Service {
-	service := &S3Service{session: session, Config: config}
+func NewS3Service(session *session.Session, config storage.Config) *S3Adapter {
+	return NewS3Adapter(session, config)
+}
+func NewS3Adapter(session *session.Session, config storage.Config) *S3Adapter {
+	service := &S3Adapter{session: session, Config: config}
 	return service
 }
 
-func (s S3Service) Upload(ctx context.Context, directory string, filename string, data []byte, contentType string) (string, error) {
+func (s S3Adapter) Upload(ctx context.Context, directory string, filename string, data []byte, contentType string) (string, error) {
 	dir := filename
 	if len(directory) > 0 {
 		dir = path.Join(directory, filename)
@@ -68,7 +73,7 @@ func (s S3Service) Upload(ctx context.Context, directory string, filename string
 	return up.Location, nil
 }
 
-func (s S3Service) Delete(ctx context.Context, id string) (bool, error) {
+func (s S3Adapter) Delete(ctx context.Context, id string) (bool, error) {
 	out, err := s3.New(s.session).DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{Bucket: &s.Config.Bucket, Key: &id})
 	if err != nil {
 		return false, err

@@ -16,7 +16,7 @@ const contentTypeHeader = "Content-Type"
 const maxSizeMemory = 20 << 20
 
 type UploadTransport interface {
-	GetFile(w http.ResponseWriter, r *http.Request)
+	UploadFile(w http.ResponseWriter, r *http.Request)
 	DeleteFile(w http.ResponseWriter, r *http.Request)
 }
 
