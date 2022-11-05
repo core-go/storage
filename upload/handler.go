@@ -11,7 +11,7 @@ import (
 
 const contentTypeHeader = "Content-Type"
 
-func NewHandler(service UploadManager, logError func(context.Context, string, ...map[string]interface{}),
+func NewHandler(service UploadService, logError func(context.Context, string, ...map[string]interface{}),
 	keyFile string, generate func(ctx context.Context) (string, error), opts ...int,
 ) *Handler {
 	idIndex := 1
@@ -26,7 +26,7 @@ func NewHandler(service UploadManager, logError func(context.Context, string, ..
 	}
 }
 type Handler struct {
-	Service    UploadManager
+	Service    UploadService
 	LogError   func(context.Context, string, ...map[string]interface{})
 	KeyFile    string
 	generateId func(ctx context.Context) (string, error)

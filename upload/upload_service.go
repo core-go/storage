@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type UploadManager interface {
+type UploadService interface {
 	UploadGallery(data Upload, r *http.Request) ([]UploadInfo, error)
 	DeleteGalleryFile(id string, url string, r *http.Request) (int64, error)
 	UploadCover(id string, data []UploadData, contentType string, r *http.Request) (string, error)
@@ -19,14 +19,14 @@ type UploadManager interface {
 	GetGallery(id string, r *http.Request) ([]UploadInfo, error)
 }
 
-type StorageService interface {
+type StoragePort interface {
 	Upload(ctx context.Context, directory string, filename string, data []byte, contentType string) (string, error)
 	Delete(ctx context.Context, id string) (bool, error)
 }
 
-type UploadService struct {
+type UploadUseCase struct {
 	repository       StorageRepository
-	Service          StorageService
+	Service          StoragePort
 	Provider         string
 	GeneralDirectory string
 	Directory        string
@@ -37,10 +37,10 @@ type UploadService struct {
 
 func NewUploadService(
 	repository StorageRepository,
-	service StorageService, provider string, generalDirectory string,
+	service StoragePort, provider string, generalDirectory string,
 	keyFile string, directory string,
 	sizesCover []int,
-	sizesImage []int) UploadManager {
+	sizesImage []int) UploadService {
 
 	var sizesI = []int{40, 400}
 	var sizesC = []int{576, 768}
@@ -51,11 +51,11 @@ func NewUploadService(
 	if len(sizesImage) != 0 {
 		sizesI = sizesCover
 	}
-	return &UploadService{Service: service, Provider: provider, GeneralDirectory: generalDirectory,
+	return &UploadUseCase{Service: service, Provider: provider, GeneralDirectory: generalDirectory,
 		KeyFile: keyFile, Directory: directory,
 		SizesImage: sizesI, SizesCover: sizesC, repository: repository}
 }
-func (u *UploadService) UploadCover(id string, data []UploadData, contentType string, r *http.Request) (string, error) {
+func (u *UploadUseCase) UploadCover(id string, data []UploadData, contentType string, r *http.Request) (string, error) {
 	//delete
 	result, err := u.repository.Load(r.Context(), id)
 	if err != nil {
@@ -93,7 +93,7 @@ func (u *UploadService) UploadCover(id string, data []UploadData, contentType st
 	return newUrl, nil
 }
 
-func (u *UploadService) UploadImage(id string, data []UploadData, contentType string, r *http.Request) (string, error) {
+func (u *UploadUseCase) UploadImage(id string, data []UploadData, contentType string, r *http.Request) (string, error) {
 	//delete
 	result, err := u.repository.Load(r.Context(), id)
 	if err != nil {
@@ -131,7 +131,7 @@ func (u *UploadService) UploadImage(id string, data []UploadData, contentType st
 	return newUrl, nil
 }
 
-func (u *UploadService) UploadGallery(data Upload, r *http.Request) ([]UploadInfo, error) {
+func (u *UploadUseCase) UploadGallery(data Upload, r *http.Request) ([]UploadInfo, error) {
 	result, err := u.repository.Load(r.Context(), data.Id)
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ func (u *UploadService) UploadGallery(data Upload, r *http.Request) ([]UploadInf
 	return gallery, nil
 }
 
-func (u *UploadService) UploadFile(fileName string, contentType string, data []byte, r *http.Request) (rs string, errorRespone error) {
+func (u *UploadUseCase) UploadFile(fileName string, contentType string, data []byte, r *http.Request) (rs string, errorRespone error) {
 	directory := u.Directory
 	rs, err2 := u.Service.Upload(r.Context(), directory, fileName, data, contentType)
 	if err2 != nil {
@@ -169,7 +169,7 @@ func (u *UploadService) UploadFile(fileName string, contentType string, data []b
 	return
 }
 
-func (u *UploadService) DeleteGalleryFile(id string, url string, r *http.Request) (int64, error) {
+func (u *UploadUseCase) DeleteGalleryFile(id string, url string, r *http.Request) (int64, error) {
 	rs, err := u.repository.Load(r.Context(), id)
 	if err != nil {
 		return 0, err
@@ -201,7 +201,7 @@ func (u *UploadService) DeleteGalleryFile(id string, url string, r *http.Request
 	return 1, nil
 }
 
-func (u *UploadService) GetGallery(id string, r *http.Request) ([]UploadInfo, error) {
+func (u *UploadUseCase) GetGallery(id string, r *http.Request) ([]UploadInfo, error) {
 	rs, err := u.repository.Load(r.Context(), id)
 	if err != nil {
 		return nil, err
@@ -212,7 +212,7 @@ func (u *UploadService) GetGallery(id string, r *http.Request) ([]UploadInfo, er
 	return rs.Gallery, err
 }
 
-func (u *UploadService) UpdateGallery(data []UploadInfo, id string, r *http.Request) (int64, error) {
+func (u *UploadUseCase) UpdateGallery(data []UploadInfo, id string, r *http.Request) (int64, error) {
 	user := UploadModel{Id: id, Gallery: data}
 	_, err2 := u.Update(r.Context(), user)
 	if err2 != nil {
@@ -220,7 +220,7 @@ func (u *UploadService) UpdateGallery(data []UploadInfo, id string, r *http.Requ
 	}
 	return 1, err2
 }
-func (u *UploadService) DeleteFileUpload(sizes []int, url string, r *http.Request) (bool, error) {
+func (u *UploadUseCase) DeleteFileUpload(sizes []int, url string, r *http.Request) (bool, error) {
 	rs, err := u.DeleteFile(url, r)
 	fmt.Print(rs, err)
 	// if err != nil {
@@ -236,14 +236,14 @@ func (u *UploadService) DeleteFileUpload(sizes []int, url string, r *http.Reques
 	return true, nil
 }
 
-func (u *UploadService) DeleteFile(url string, r *http.Request) (bool, error) {
+func (u *UploadUseCase) DeleteFile(url string, r *http.Request) (bool, error) {
 	arrOrigin := strings.Split(url, "/")
 	delOriginUrl := arrOrigin[len(arrOrigin)-2] + "/" + arrOrigin[len(arrOrigin)-1]
 	rs, err := u.Service.Delete(r.Context(), delOriginUrl)
 	return rs, err
 }
 
-func (u *UploadService) Update(ctx context.Context, user UploadModel) (bool, error) {
+func (u *UploadUseCase) Update(ctx context.Context, user UploadModel) (bool, error) {
 	_, err := u.repository.Update(ctx, user)
 	if err == nil {
 		return false, nil
