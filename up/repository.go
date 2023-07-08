@@ -37,17 +37,14 @@ type SqlRepository struct {
 }
 
 func (s *SqlRepository) Load(ctx context.Context, id string) (*Upload, error) {
-	var attachments = make([]Upload, 0)
+	var upload = new(Upload)
 	query := fmt.Sprintf("select %s from %s where %s= $1", s.Columns.File, s.Table, s.Columns.Id)
 	row := s.DB.QueryRowContext(ctx, query, id)
-	err := row.Scan(s.toArray(&attachments))
+	err := row.Scan(&upload)
 	if err != nil {
 		return nil, err
 	}
-	if len(attachments) > 0 {
-		return &attachments[0], nil
-	}
-	return nil, err
+	return upload, err
 }
 
 func (s *SqlRepository) Update(ctx context.Context, id string, attachments Upload) (int64, error) {

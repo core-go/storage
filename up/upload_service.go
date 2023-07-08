@@ -36,12 +36,9 @@ func NewUploadService(
 }
 
 func (u *UploadUseCase) Upload(ctx context.Context, id string, req Request) (*Upload, error) {
-	e, err := u.repository.Load(ctx, id)
+	_, err := u.repository.Load(ctx, id)
 	if err != nil {
 		return nil, err
-	}
-	if e == nil {
-		return nil, errors.New("not found item")
 	}
 	url, err := u.uploadFileOnServer(ctx, req.Filename, req.Type, req.Size, req.Data)
 	if err != nil {
